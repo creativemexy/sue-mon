@@ -4,8 +4,8 @@
 # This script checks for GitHub updates and deploys automatically
 
 # Configuration
-PROJECT_DIR="/opt/sue-mon"
-LOG_FILE="/opt/sue-mon/deploy.log"
+PROJECT_DIR="/var/www/sue-mon"
+LOG_FILE="/var/www/sue-mon/deploy.log"
 BRANCH="main"
 REPO_URL="https://github.com/yourusername/sue-mon.git"
 
@@ -26,8 +26,8 @@ set -e
 # Check if project directory exists
 if [ ! -d "$PROJECT_DIR" ]; then
     log "${RED}Project directory not found. Cloning repository...${NC}"
-    mkdir -p /opt
-    cd /opt
+    mkdir -p /var/www
+    cd /var/www
     git clone "$REPO_URL" sue-mon
     cd sue-mon
     npm install
@@ -42,7 +42,7 @@ cd "$PROJECT_DIR"
 # Check if git repository exists
 if [ ! -d ".git" ]; then
     log "${RED}Git repository not found. Re-cloning...${NC}"
-    cd /opt
+    cd /var/www
     rm -rf sue-mon
     git clone "$REPO_URL" sue-mon
     cd sue-mon
@@ -94,7 +94,7 @@ fi
 
 # Clean up old backups (keep last 5)
 log "Cleaning up old backups..."
-cd /opt
+cd /var/www
 ls -t sue-mon.backup.* | tail -n +6 | xargs -r rm -rf
 
 log "${GREEN}Deployment completed successfully!${NC}"

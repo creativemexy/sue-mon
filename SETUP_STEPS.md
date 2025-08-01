@@ -83,9 +83,9 @@ sudo apt install caddy
 
 #### 3.1 Clone Repository
 ```bash
-cd /opt
+cd /var/www
 sudo git clone https://github.com/YOUR_USERNAME/sue-mon.git
-sudo chown -R $USER:$USER /opt/sue-mon
+sudo chown -R $USER:$USER /var/www/sue-mon
 cd sue-mon
 ```
 
@@ -167,7 +167,7 @@ pm2 logs sue-mon
 
 #### 6.1 Update Deployment Script
 ```bash
-sudo nano /opt/sue-mon/deploy.sh
+sudo nano /var/www/sue-mon/deploy.sh
 ```
 
 **Change this line:**
@@ -177,7 +177,7 @@ REPO_URL="https://github.com/YOUR_USERNAME/sue-mon.git"
 
 #### 6.2 Make Script Executable
 ```bash
-sudo chmod +x /opt/sue-mon/deploy.sh
+sudo chmod +x /var/www/sue-mon/deploy.sh
 ```
 
 #### 6.3 Setup Cron Job
@@ -187,12 +187,12 @@ crontab -e
 
 **Add this line:**
 ```bash
-*/30 * * * * /opt/sue-mon/deploy.sh >> /opt/sue-mon/deploy.log 2>&1
+*/30 * * * * /var/www/sue-mon/deploy.sh >> /var/www/sue-mon/deploy.log 2>&1
 ```
 
 #### 6.4 Test Deployment Script
 ```bash
-/opt/sue-mon/deploy.sh
+/var/www/sue-mon/deploy.sh
 ```
 
 ---
