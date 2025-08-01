@@ -10,7 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Check, Gift, Truck, Calendar, X, CreditCard, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PaystackButton } from 'react-paystack';
+import dynamic from 'next/dynamic';
+
+const PaystackButton = dynamic(() => import('react-paystack').then(mod => ({ default: mod.PaystackButton })), {
+  ssr: false,
+  loading: () => <div className="w-full h-10 bg-muted animate-pulse rounded-md"></div>
+});
 
 interface PageContent {
   id: string;
