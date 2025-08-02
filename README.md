@@ -1,206 +1,154 @@
-# Sue & Mon - Premium Herbal Blends
+# Sue & Mon - PHP E-commerce Platform
 
-A modern e-commerce website for premium herbal tea blends and spices, built with Next.js, TypeScript, and Supabase.
+A fully functional e-commerce website for premium herbal tea blends, built with modern PHP.
 
-## 🚀 Features
+## 🚀 **Features**
 
-- **Dynamic Product Management**: Admin dashboard for managing products, blog posts, and content
-- **Database-Driven**: All content stored in Supabase PostgreSQL database
-- **Payment Integration**: Paystack payment gateway for subscriptions
-- **Responsive Design**: Modern UI with Tailwind CSS and Shadcn UI components
-- **SEO Optimized**: Next.js App Router with proper metadata
-- **Authentication**: User roles and admin access control
+- **Complete E-commerce Functionality**
+  - Product catalog with search and filtering
+  - Shopping cart with session management
+  - Secure checkout process
+  - Order management and tracking
+  - Payment integration (Paystack ready)
 
-## 🛠️ Tech Stack
+- **User Management**
+  - User registration and authentication
+  - Admin dashboard and user roles
+  - Profile management
+  - Order history
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **UI Components**: Shadcn UI, Lucide React Icons
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Payments**: Paystack Integration
-- **Deployment**: OCI with Caddy
+- **Content Management**
+  - Blog system with articles
+  - Newsletter subscription
+  - Product categories and tags
+  - SEO optimized pages
 
-## 📁 Project Structure
+- **Customer Support**
+  - Contact forms
+  - FAQ system
+  - Returns and refunds
+  - Shipping information
+
+## 🛠 **Tech Stack**
+
+- **Backend:** PHP 8.0+
+- **Database:** MySQL 8.0+
+- **Frontend:** HTML5, CSS3, JavaScript (ES6+)
+- **Styling:** Tailwind CSS (via CDN)
+- **Icons:** Font Awesome
+- **Payment:** Paystack Integration
+- **Email:** SMTP
+
+## 📁 **Project Structure**
 
 ```
-src/
-├── app/                    # Next.js App Router
-├── components/             # React components
-│   ├── admin/             # Admin dashboard components
-│   ├── ui/                # Shadcn UI components
-│   └── ...
-├── contexts/              # React contexts (Auth, Cart, Search)
-├── hooks/                 # Custom React hooks
-├── integrations/          # External service integrations
-├── pages/                 # Page components
-└── types/                 # TypeScript type definitions
+├── index.php                 # Main entry point and routing
+├── config/                   # Configuration files
+│   ├── config.php           # Site settings and constants
+│   └── database.php         # Database connection
+├── includes/                 # Core functionality
+│   ├── auth.php             # Authentication system
+│   ├── functions.php        # Utility functions
+│   ├── layout.php           # Main layout template
+│   ├── header.php           # Navigation header
+│   ├── footer.php           # Site footer
+│   ├── cart-sidebar.php     # Shopping cart sidebar
+│   └── search-modal.php     # Search modal
+├── pages/                   # Page templates
+│   ├── home.php             # Homepage
+│   ├── shop.php             # Product listing
+│   ├── product.php          # Product details
+│   ├── cart.php             # Shopping cart
+│   ├── checkout.php         # Checkout process
+│   ├── blog.php             # Blog posts
+│   ├── auth/                # Authentication pages
+│   │   ├── login.php
+│   │   ├── register.php
+│   │   └── logout.php
+│   └── [other pages]        # About, Contact, FAQ, etc.
+├── api/                     # API endpoints
+│   ├── cart/                # Cart management
+│   │   ├── add.php
+│   │   ├── update.php
+│   │   └── remove.php
+│   └── search.php           # Product search
+├── assets/                  # Static assets
+│   ├── css/
+│   │   └── style.css       # Custom styles
+│   └── js/
+│       └── app.js          # JavaScript functionality
+├── database/                # Database files
+│   └── schema.sql          # Complete database schema
+├── public/                  # Public assets
+│   └── images/              # Product images
+├── deploy.sh               # Manual deployment script
+├── auto_update.sh          # Automatic update script
+└── setup_cron.sh           # Cron job setup script
 ```
 
-## 🚀 Getting Started
+## 🚀 **Quick Start**
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
-- Paystack account (for payments)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/sue-mon.git
-   cd sue-mon
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Update `.env.local` with your credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
-   ```
-
-4. **Database Setup**
-   - Run the SQL scripts in Supabase SQL Editor:
-     - `products_db_fixed.sql`
-     - `subscription_payment_setup.sql`
-
-5. **Development Server**
-   ```bash
-   npm run dev
-   ```
-
-## 🗄️ Database Schema
-
-### Products Table
+### 1. **Database Setup**
 ```sql
-CREATE TABLE products (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT NOT NULL,
-  price INTEGER NOT NULL,
-  original_price INTEGER,
-  image TEXT DEFAULT '/placeholder.svg',
-  rating DECIMAL(2,1) DEFAULT 0.0,
-  reviews INTEGER DEFAULT 0,
-  benefits TEXT[] DEFAULT '{}',
-  category TEXT NOT NULL,
-  in_stock BOOLEAN DEFAULT true,
-  is_new BOOLEAN DEFAULT false,
-  is_bestseller BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+CREATE DATABASE sue_mon_db;
+mysql -u root -p sue_mon_db < database/schema.sql
 ```
 
-## 🔧 Deployment
+### 2. **Configuration**
+Edit `config/config.php` with your settings:
+- Database credentials
+- Site configuration
+- Payment gateway settings
 
-### OCI with Caddy Setup
+### 3. **Web Server Setup**
+- Point your web server to the project root
+- Ensure PHP 8.0+ is installed
+- Configure your database connection
 
-1. **Server Requirements**
-   - Ubuntu 20.04+
-   - Node.js 18+
-   - Caddy web server
-   - Git
+## 🔄 **Automatic Deployment**
 
-2. **Initial Setup**
-   ```bash
-   # Install Node.js
-   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-   sudo apt-get install -y nodejs
+The project includes automatic deployment scripts for continuous updates:
 
-   # Install Caddy
-   sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-   sudo apt update
-   sudo apt install caddy
-   ```
-
-3. **Clone and Setup**
-   ```bash
-   git clone https://github.com/yourusername/sue-mon.git
-   cd sue-mon
-   npm install
-   npm run build
-   ```
-
-4. **Caddy Configuration**
-   ```caddy
-   # /etc/caddy/Caddyfile
-   yourdomain.com {
-       reverse_proxy localhost:3000
-   }
-   ```
-
-5. **PM2 Process Manager**
-   ```bash
-   npm install -g pm2
-   pm2 start npm --name "sue-mon" -- start
-   pm2 startup
-   pm2 save
-   ```
-
-## 🔄 Auto-Deployment Script
-
-The project includes an auto-deployment script that checks for GitHub updates every 30 minutes:
-
+### Manual Deployment
 ```bash
-#!/bin/bash
-# /opt/sue-mon/deploy.sh
-
-cd /opt/sue-mon
-git fetch origin
-if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
-    echo "Updates found, deploying..."
-    git pull origin main
-    npm install
-    npm run build
-    pm2 restart sue-mon
-    echo "Deployment completed at $(date)"
-else
-    echo "No updates found at $(date)"
-fi
+./deploy.sh
 ```
 
-### Cron Job Setup
+### Automatic Updates (Every 30 minutes)
 ```bash
-# Add to crontab (crontab -e)
-*/30 * * * * /opt/sue-mon/deploy.sh >> /opt/sue-mon/deploy.log 2>&1
+# Set up cron job (run as root)
+sudo ./setup_cron.sh
+
+# The script will automatically:
+# - Check for GitHub updates every 30 minutes
+# - Pull latest changes if available
+# - Restart web server
+# - Maintain backup of previous version
 ```
 
-## 📝 Admin Dashboard
+### Monitoring
+- Logs are written to `/var/www/sue-mon/auto_update.log`
+- Check cron job status: `crontab -u www-data -l`
+- Remove cron job: `crontab -u www-data -r`
 
-Access the admin dashboard at `/admin` with admin credentials:
+## 🛠 **Development**
 
-- **Product Management**: Add, edit, delete products
-- **Blog Management**: Create and manage blog posts
-- **Content Management**: Edit page content dynamically
-- **Order Management**: View and manage orders
-- **System Settings**: Configure site settings
+### Local Development
+1. Clone the repository
+2. Set up your local database
+3. Configure your local environment
+4. Start your local web server
 
-## 🔐 Environment Variables
+### Production Deployment
+1. Upload files to your server
+2. Set up database
+3. Configure web server
+4. Set up automatic updates
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | Yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Paystack public key | Yes |
+## 📝 **License**
 
-## 📞 Support
+This project is licensed under the MIT License.
 
-For support, email support@sueandmon.com or create an issue on GitHub.
+## 🤝 **Support**
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+For support, please contact the development team or create an issue in the repository.

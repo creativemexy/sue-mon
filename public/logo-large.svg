@@ -1,0 +1,26 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="white"/>
+  
+  <!-- Teacup formed by two profiles -->
+  <g fill="black">
+    <!-- Left profile (smaller) - forms left curve of cup -->
+    <path d="M50 125 C50 115, 55 100, 65 95 C75 90, 85 85, 95 80 C105 75, 115 70, 125 70 C135 70, 145 75, 155 80 C165 85, 175 90, 185 95 C195 100, 200 115, 200 125 C200 135, 195 150, 185 155 C175 160, 165 165, 155 170 C145 165, 135 160, 125 155 C115 160, 105 165, 95 165 C85 165, 75 160, 65 155 C55 150, 50 135, 50 125 Z"/>
+    
+    <!-- Right profile (larger) - forms right curve and handle -->
+    <path d="M185 125 C185 115, 190 100, 200 95 C210 90, 220 85, 230 80 C240 75, 250 70, 260 70 C270 70, 280 75, 280 80 C280 85, 270 90, 260 95 C250 100, 245 115, 245 125 C245 135, 250 150, 260 155 C270 160, 280 165, 280 170 C280 175, 270 180, 260 180 C250 180, 240 175, 230 170 C220 165, 210 160, 200 155 C190 150, 185 135, 185 125 Z"/>
+    
+    <!-- Handle of the teacup -->
+    <path d="M245 115 C250 115, 255 120, 255 125 C255 130, 250 135, 245 135 C240 135, 235 130, 235 125 C235 120, 240 115, 245 115 Z"/>
+  </g>
+  
+                <!-- Steam lines -->
+              <g stroke="black" strokeWidth="3" fill="none">
+                <path d="M90 50 Q100 30, 110 50 Q120 30, 130 50"/>
+                <path d="M95 40 Q105 20, 115 40"/>
+                <path d="M100 30 Q110 10, 120 30"/>
+              </g>
+  
+  <!-- Text "Sue & Mon" -->
+  <text x="100" y="190" text-anchor="middle" font-family="cursive" font-size="24" font-weight="bold" fill="black">Sue & Mon</text>
+</svg> 

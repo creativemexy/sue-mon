@@ -1,21 +1,14 @@
 #!/bin/bash
 
-# Auto-deployment script for Sue & Mon PHP website
-# This script checks for GitHub updates and deploys automatically
+# Auto-update script for Sue & Mon PHP website
+# This script is designed to be run by cron every 30 minutes
 
 # Configuration
 PROJECT_DIR="/var/www/sue-mon"
-LOG_FILE="/var/www/sue-mon/deploy.log"
+LOG_FILE="/var/www/sue-mon/auto_update.log"
 BRANCH="main"
-REPO_URL="https://github.com/yourusername/sue-mon.git"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Log function
+# Colors for output (removed for cron compatibility)
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
 }
@@ -25,13 +18,8 @@ set -e
 
 # Check if project directory exists
 if [ ! -d "$PROJECT_DIR" ]; then
-    log "${RED}Project directory not found. Cloning repository...${NC}"
-    mkdir -p /var/www
-    cd /var/www
-    git clone "$REPO_URL" sue-mon
-    cd sue-mon
-    log "${GREEN}Initial setup completed${NC}"
-    exit 0
+    log "ERROR: Project directory not found: $PROJECT_DIR"
+    exit 1
 fi
 
 # Navigate to project directory
@@ -39,17 +27,12 @@ cd "$PROJECT_DIR"
 
 # Check if git repository exists
 if [ ! -d ".git" ]; then
-    log "${RED}Git repository not found. Re-cloning...${NC}"
-    cd /var/www
-    rm -rf sue-mon
-    git clone "$REPO_URL" sue-mon
-    cd sue-mon
-    log "${GREEN}Repository re-cloned successfully${NC}"
-    exit 0
+    log "ERROR: Git repository not found in $PROJECT_DIR"
+    exit 1
 fi
 
 # Fetch latest changes
-log "${YELLOW}Checking for updates...${NC}"
+log "Checking for updates..."
 git fetch origin
 
 # Check if there are any changes
@@ -57,12 +40,12 @@ LOCAL_COMMIT=$(git rev-parse HEAD)
 REMOTE_COMMIT=$(git rev-parse origin/$BRANCH)
 
 if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
-    log "${GREEN}No updates found${NC}"
+    log "No updates found"
     exit 0
 fi
 
 # Updates found - start deployment
-log "${YELLOW}Updates found! Starting deployment...${NC}"
+log "Updates found! Starting deployment..."
 
 # Backup current version
 log "Creating backup..."
@@ -94,6 +77,6 @@ log "Cleaning up old backups..."
 cd /var/www
 ls -t sue-mon.backup.* | tail -n +6 | xargs -r rm -rf
 
-log "${GREEN}Deployment completed successfully!${NC}"
+log "Deployment completed successfully!"
 log "New commit: $(git rev-parse --short HEAD)"
-log "Deployment time: $(date)"
+log "Deployment time: $(date)" 
