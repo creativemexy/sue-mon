@@ -9,7 +9,6 @@ echo "=== Testing Sue & Mon PHP Application ===\n\n";
 echo "1. Checking required files...\n";
 $required_files = [
     'config/config.php',
-    'config/database.php',
     'config/supabase_client.php',
     'includes/functions.php',
     'includes/auth.php',
@@ -40,37 +39,18 @@ try {
         echo "⚠️  Supabase URL not configured (using placeholder)\n";
     }
     
-    // Check if database password is configured
-    if (defined('DB_PASS') && DB_PASS !== 'your-database-password') {
-        echo "✅ Database password configured\n";
+    // Check if Supabase service role key is configured
+    if (defined('SUPABASE_SERVICE_ROLE_KEY') && SUPABASE_SERVICE_ROLE_KEY !== 'your_supabase_service_role_key') {
+        echo "✅ Supabase service role key configured\n";
     } else {
-        echo "⚠️  Database password not configured (using placeholder)\n";
+        echo "⚠️  Supabase service role key not configured (using placeholder)\n";
     }
     
 } catch (Exception $e) {
     echo "❌ Error loading config: " . $e->getMessage() . "\n";
 }
 
-echo "\n3. Testing database connection...\n";
-try {
-    require_once 'config/database.php';
-    $db = Database::getInstance();
-    echo "✅ Database class loaded\n";
-    
-    // Try to connect (this might fail if credentials are not set)
-    try {
-        $connection = $db->getConnection();
-        echo "✅ Database connection successful\n";
-    } catch (Exception $e) {
-        echo "⚠️  Database connection failed: " . $e->getMessage() . "\n";
-        echo "   This is expected if database credentials are not configured\n";
-    }
-    
-} catch (Exception $e) {
-    echo "❌ Error loading database: " . $e->getMessage() . "\n";
-}
-
-echo "\n4. Testing Supabase client...\n";
+echo "\n3. Testing Supabase client...\n";
 try {
     require_once 'config/supabase_client.php';
     echo "✅ Supabase client loaded\n";
@@ -97,7 +77,7 @@ try {
     echo "❌ Error loading Supabase client: " . $e->getMessage() . "\n";
 }
 
-echo "\n5. Testing includes...\n";
+echo "\n4. Testing includes...\n";
 try {
     require_once 'includes/functions.php';
     echo "✅ functions.php loaded\n";
@@ -112,7 +92,7 @@ try {
     echo "❌ Error loading includes: " . $e->getMessage() . "\n";
 }
 
-echo "\n6. Testing routing...\n";
+echo "\n5. Testing routing...\n";
 try {
     // Simulate a request
     $_SERVER['REQUEST_URI'] = '/';
@@ -141,10 +121,23 @@ try {
     echo "❌ Error testing routing: " . $e->getMessage() . "\n";
 }
 
+echo "\n6. Testing index.php...\n";
+try {
+    // Test if index.php can be included without errors
+    ob_start();
+    include 'index.php';
+    $output = ob_get_clean();
+    echo "✅ index.php loaded successfully\n";
+    
+} catch (Exception $e) {
+    echo "❌ Error loading index.php: " . $e->getMessage() . "\n";
+}
+
 echo "\n=== Test Complete ===\n";
 echo "\nTo fix any issues:\n";
 echo "1. Configure your Supabase credentials in config/config.php\n";
-echo "2. Set up your database password from Supabase dashboard\n";
+echo "2. Set up your Supabase service role key from Supabase dashboard\n";
 echo "3. Ensure all required files are present\n";
 echo "4. Check file permissions\n";
+echo "5. Make sure your Supabase project is active and accessible\n";
 ?> 
