@@ -10,21 +10,21 @@ require_once 'config/config.php';
 require_once 'config/supabase_client.php';
 
 try {
-    // Test regular client (uses anon key)
+    // Test regular client (uses publishable key)
     $supabase = new SupabaseClient(false);
-    echo "<h2>✅ Regular Client (Anon Key) Test</h2>";
+    echo "<h2>✅ Regular Client (Publishable Key) Test</h2>";
     echo "<ul>";
-    echo "<li>✅ Client initialized with anon key</li>";
+    echo "<li>✅ Client initialized with publishable key</li>";
     echo "<li>✅ URL: " . SUPABASE_URL . "</li>";
-    echo "<li>✅ Anon Key: " . substr(SUPABASE_ANON_KEY, 0, 20) . "...</li>";
+    echo "<li>✅ Publishable Key: " . substr(SUPABASE_PUBLISHABLE_KEY, 0, 20) . "...</li>";
     echo "</ul>";
     
-    // Test admin client (uses service role key)
+    // Test admin client (uses secret key)
     $supabaseAdmin = new SupabaseClient(true);
-    echo "<h2>✅ Admin Client (Service Role Key) Test</h2>";
+    echo "<h2>✅ Admin Client (Secret Key) Test</h2>";
     echo "<ul>";
-    echo "<li>✅ Admin client initialized with service role key</li>";
-    echo "<li>✅ Service Role Key: " . substr(SUPABASE_SERVICE_ROLE_KEY, 0, 20) . "...</li>";
+    echo "<li>✅ Admin client initialized with secret key</li>";
+    echo "<li>✅ Secret Key: " . substr(SUPABASE_SECRET_KEY, 0, 20) . "...</li>";
     echo "</ul>";
     
     echo "<h2>🔧 API Features Test</h2>";
@@ -72,8 +72,8 @@ try {
     echo "<h2>🔒 Security Features</h2>";
     echo "<ul>";
     echo "<li>✅ Separate clients for user vs admin operations</li>";
-    echo "<li>✅ Service role key only used for admin operations</li>";
-    echo "<li>✅ Anon key used for user operations</li>";
+    echo "<li>✅ Secret key only used for admin operations</li>";
+    echo "<li>✅ Publishable key used for user operations</li>";
     echo "<li>✅ Proper error handling and logging</li>";
     echo "<li>✅ SSL verification enabled</li>";
     echo "</ul>";
@@ -105,8 +105,8 @@ try {
     echo "<table border='1' style='border-collapse: collapse; width: 100%;'>";
     echo "<tr><th>Setting</th><th>Status</th><th>Value</th></tr>";
     echo "<tr><td>SUPABASE_URL</td><td>✅ Set</td><td>" . SUPABASE_URL . "</td></tr>";
-    echo "<tr><td>SUPABASE_ANON_KEY</td><td>✅ Set</td><td>" . substr(SUPABASE_ANON_KEY, 0, 20) . "...</td></tr>";
-    echo "<tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td>" . (strpos(SUPABASE_SERVICE_ROLE_KEY, 'YOUR_') !== false ? '❌ Needs Update' : '✅ Set') . "</td><td>" . substr(SUPABASE_SERVICE_ROLE_KEY, 0, 20) . "...</td></tr>";
+    echo "<tr><td>SUPABASE_PUBLISHABLE_KEY</td><td>✅ Set</td><td>" . substr(SUPABASE_PUBLISHABLE_KEY, 0, 20) . "...</td></tr>";
+    echo "<tr><td>SUPABASE_SECRET_KEY</td><td>" . (strpos(SUPABASE_SECRET_KEY, 'YOUR_') !== false ? '❌ Needs Update' : '✅ Set') . "</td><td>" . substr(SUPABASE_SECRET_KEY, 0, 20) . "...</td></tr>";
     echo "</table>";
     
 } catch (Exception $e) {

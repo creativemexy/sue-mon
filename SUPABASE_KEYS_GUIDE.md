@@ -1,14 +1,14 @@
-# 🔑 Modern Supabase API Keys Configuration Guide
+# 🔑 Supabase Keys Configuration Guide
 
-## 📋 **Modern API Keys Explained**
+## 📋 **Supabase Keys Explained**
 
-### **1. API Key (Anon Key) - ✅ Use This for User Operations**
+### **1. Publishable Key - ✅ Use This for User Operations**
 - **Location:** Supabase Dashboard > Settings > API > anon public
 - **What it does:** Read data, insert data (with RLS policies), user authentication
 - **Security:** Safe to expose in frontend code
 - **Your current config:** ✅ Already configured correctly
 
-### **2. Service Role Key - ⚠️ For Admin Operations**
+### **2. Secret Key - ⚠️ For Admin Operations**
 - **Location:** Supabase Dashboard > Settings > API > service_role
 - **What it does:** Bypass RLS, full database access, admin operations
 - **Security:** Never expose in frontend, only use server-side
@@ -21,7 +21,7 @@
 2. Sign in to your account
 3. Select your project: `truyxgamywbkuovyzlhe`
 
-### **Step 2: Get the Service Role Key**
+### **Step 2: Get the Secret Key**
 1. In your project dashboard, go to **Settings** (gear icon)
 2. Click on **API** in the sidebar
 3. Scroll down to **Project API keys**
@@ -32,25 +32,25 @@ Replace the placeholder in `config/config.php`:
 
 ```php
 // Replace this line:
-define('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXl4Z2FteXdia3Vvdnl6bGhlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjg0NTAwOSwiZXhwIjoyMDY4NDIxMDA5fQ.YOUR_SERVICE_ROLE_KEY_HERE');
+define('SUPABASE_SECRET_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXl4Z2FteXdia3Vvdnl6bGhlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjg0NTAwOSwiZXhwIjoyMDY4NDIxMDA5fQ.YOUR_SECRET_KEY_HERE');
 
-// With your actual service role key:
-define('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXl4Z2FteXdia3Vvdnl6bGhlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjg0NTAwOSwiZXhwIjoyMDY4NDIxMDA5fQ.ACTUAL_SERVICE_ROLE_KEY_HERE');
+// With your actual secret key:
+define('SUPABASE_SECRET_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXl4Z2FteXdia3Vvdnl6bGhlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjg0NTAwOSwiZXhwIjoyMDY4NDIxMDA5fQ.ACTUAL_SECRET_KEY_HERE');
 ```
 
 ## 🔒 **Modern API Security Best Practices**
 
 ### **✅ Do This:**
-- Use **API key (anon)** for user operations (registration, login, reading data)
-- Use **service role key** only for admin operations (bypassing RLS)
-- Keep service role key secret and server-side only
+- Use **publishable key** for user operations (registration, login, reading data)
+- Use **secret key** only for admin operations (bypassing RLS)
+- Keep secret key secret and server-side only
 - Use Row Level Security (RLS) policies in Supabase
 - Use modern authentication methods (authSignUp, authSignIn)
 
 ### **❌ Don't Do This:**
-- Never expose service role key in frontend code
+- Never expose secret key in frontend code
 - Don't commit real keys to public repositories
-- Don't use service role key for regular user operations
+- Don't use secret key for regular user operations
 - Don't use legacy authentication methods
 
 ## 🧪 **Test Your Configuration**
@@ -66,8 +66,8 @@ yourdomain.com/test_connection.php
 
 | Key Type | Status | Location |
 |----------|--------|----------|
-| **Anon Key** | ✅ Configured | `config/config.php` line 9 |
-| **Service Role Key** | ❌ Needs Update | `config/config.php` line 12 |
+| **Publishable Key** | ✅ Configured | `config/config.php` line 9 |
+| **Secret Key** | ❌ Needs Update | `config/config.php` line 12 |
 
 ## 🔧 **Troubleshooting**
 

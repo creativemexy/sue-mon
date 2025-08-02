@@ -5,8 +5,8 @@ class SupabaseClient {
     
     public function __construct($useServiceRole = false) {
         $this->url = SUPABASE_URL;
-        // Use service role key for admin operations, anon key for user operations
-        $this->apiKey = $useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
+        // Use secret key for admin operations, publishable key for user operations
+        $this->apiKey = $useServiceRole ? SUPABASE_SECRET_KEY : SUPABASE_PUBLISHABLE_KEY;
     }
     
     private function makeRequest($method, $endpoint, $data = null, $useServiceRole = false) {
@@ -15,8 +15,8 @@ class SupabaseClient {
         // Modern Supabase API headers
         $headers = [
             'Content-Type: application/json',
-            'apikey: ' . ($useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY),
-            'Authorization: Bearer ' . ($useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY),
+            'apikey: ' . ($useServiceRole ? SUPABASE_SECRET_KEY : SUPABASE_PUBLISHABLE_KEY),
+            'Authorization: Bearer ' . ($useServiceRole ? SUPABASE_SECRET_KEY : SUPABASE_PUBLISHABLE_KEY),
             'Prefer: return=representation'
         ];
         
