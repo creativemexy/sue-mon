@@ -118,9 +118,8 @@ function getNewProducts($limit = 6) {
     global $supabase;
     
     try {
-        // Get products ordered by created_at desc
         $result = $supabase->select('products', '*', ['is_active' => true]);
-        // Sort by created_at desc and take the latest
+        // Sort by created_at descending to get newest first
         usort($result, function($a, $b) {
             return strtotime($b['created_at']) - strtotime($a['created_at']);
         });
@@ -139,27 +138,8 @@ function getCategories() {
     global $supabase;
     
     try {
-        // Get unique categories from products
-        $products = $supabase->select('products', 'category', ['is_active' => true]);
-        $categories = [];
-        $categoryCounts = [];
-        
-        foreach ($products as $product) {
-            $category = $product['category'];
-            if (!isset($categoryCounts[$category])) {
-                $categoryCounts[$category] = 0;
-            }
-            $categoryCounts[$category]++;
-        }
-        
-        foreach ($categoryCounts as $category => $count) {
-            $categories[] = [
-                'category' => $category,
-                'count' => $count
-            ];
-        }
-        
-        return $categories;
+        $result = $supabase->select('categories', '*', ['is_active' => true]);
+        return $result;
     } catch (Exception $e) {
         error_log("Error getting categories: " . $e->getMessage());
         return [];
@@ -171,12 +151,15 @@ function createOrder($userId, $cartItems, $shippingData) {
     global $supabase;
     
     try {
+        // Calculate total
+        $total = array_sum(array_column($cartItems, 'total'));
+        
         // Create order
         $orderData = [
             'user_id' => $userId,
-            'total_amount' => getCartTotal(),
-            'shipping_address' => json_encode($shippingData),
+            'total_amount' => $total,
             'status' => 'pending',
+            'shipping_address' => json_encode($shippingData),
             'created_at' => date('Y-m-d H:i:s')
         ];
         
@@ -188,17 +171,17 @@ function createOrder($userId, $cartItems, $shippingData) {
                 'order_id' => $orderId,
                 'product_id' => $item['id'],
                 'quantity' => $item['quantity'],
-                'price' => $item['price']
+                'price' => $item['price'],
+                'total' => $item['total']
             ];
+            
             $supabase->insert('order_items', $orderItemData);
         }
         
-        clearCart();
-        
-        return ['success' => true, 'order_id' => $orderId];
+        return $orderId;
     } catch (Exception $e) {
         error_log("Error creating order: " . $e->getMessage());
-        return ['success' => false, 'message' => 'Failed to create order'];
+        return false;
     }
 }
 
@@ -243,7 +226,7 @@ function getBlogPost($id) {
     global $supabase;
     
     try {
-        $result = $supabase->select('blog_posts', '*', ['id' => $id]);
+        $result = $supabase->select('blog_posts', '*', ['id' => $id, 'published' => true]);
         return $result[0] ?? null;
     } catch (Exception $e) {
         error_log("Error getting blog post: " . $e->getMessage());
@@ -257,12 +240,17 @@ function formatPrice($price) {
 }
 
 function formatDate($date) {
-    return date('F j, Y', strtotime($date));
+    return date('M j, Y', strtotime($date));
 }
 
 function getProductImage($product) {
-    if (!empty($product['image_url'])) {
-        return asset($product['image_url']);
+    if (isset($product['image_url']) && !empty($product['image_url'])) {
+        // Check if it's a full URL or relative path
+        if (filter_var($product['image_url'], FILTER_VALIDATE_URL)) {
+            return $product['image_url'];
+        } else {
+            return asset('images/' . $product['image_url']);
+        }
     }
     
     // Return a placeholder image
@@ -360,6 +348,4 @@ function searchProducts($query) {
         error_log("Error searching products: " . $e->getMessage());
         return [];
     }
-}
-?> 
-?> 
+} 

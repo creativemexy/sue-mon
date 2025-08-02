@@ -246,5 +246,4 @@ class Auth {
 }
 
 // Create global instance
-$auth = new Auth();
-?> 
+$auth = new Auth(); 

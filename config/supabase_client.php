@@ -98,5 +98,4 @@ class SupabaseClient {
 }
 
 // Create global instance
-$supabase = new SupabaseClient();
-?> 
+$supabase = new SupabaseClient(); 
