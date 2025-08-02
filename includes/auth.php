@@ -1,10 +1,10 @@
 <?php
 class Auth {
-    private $db;
+    private $supabase;
 
     public function __construct() {
-        global $db;
-        $this->db = $db;
+        global $supabase;
+        $this->supabase = $supabase;
     }
 
     public function register($data) {
@@ -21,61 +21,71 @@ class Auth {
             return ['success' => false, 'message' => 'Password must be at least 6 characters'];
         }
 
-        // Check if email already exists
-        $existing = $this->db->fetch("SELECT id FROM users WHERE email = ?", [$data['email']]);
-        if ($existing) {
-            return ['success' => false, 'message' => 'Email already registered'];
+        try {
+            // Check if email already exists
+            $existing = $this->supabase->select('users', '*', ['email' => $data['email']]);
+            if (!empty($existing)) {
+                return ['success' => false, 'message' => 'Email already registered'];
+            }
+
+            // Hash password
+            $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
+
+            // Insert user
+            $userData = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $hashedPassword,
+                'role' => 'user',
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+
+            $result = $this->supabase->insert('users', $userData);
+            
+            if ($result) {
+                // Auto login after registration
+                $this->login($data['email'], $data['password']);
+                return ['success' => true, 'message' => 'Registration successful'];
+            }
+
+            return ['success' => false, 'message' => 'Registration failed'];
+        } catch (Exception $e) {
+            error_log("Registration error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Registration failed'];
         }
-
-        // Hash password
-        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-
-        // Insert user
-        $userData = [
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $hashedPassword,
-            'role' => 'user',
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-
-        $userId = $this->db->insert('users', $userData);
-        
-        if ($userId) {
-            // Auto login after registration
-            $this->login($data['email'], $data['password']);
-            return ['success' => true, 'message' => 'Registration successful'];
-        }
-
-        return ['success' => false, 'message' => 'Registration failed'];
     }
 
     public function login($email, $password) {
-        $user = $this->db->fetch("SELECT * FROM users WHERE email = ?", [$email]);
-        
-        if (!$user) {
-            return ['success' => false, 'message' => 'Invalid credentials'];
+        try {
+            $users = $this->supabase->select('users', '*', ['email' => $email]);
+            $user = $users[0] ?? null;
+            
+            if (!$user) {
+                return ['success' => false, 'message' => 'Invalid credentials'];
+            }
+
+            if (!password_verify($password, $user['password'])) {
+                return ['success' => false, 'message' => 'Invalid credentials'];
+            }
+
+            // Set session
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_role'] = $user['role'];
+            $_SESSION['logged_in'] = true;
+
+            // Update last login
+            $this->supabase->update('users', 
+                ['last_login' => date('Y-m-d H:i:s')], 
+                ['id' => $user['id']]
+            );
+
+            return ['success' => true, 'message' => 'Login successful'];
+        } catch (Exception $e) {
+            error_log("Login error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Login failed'];
         }
-
-        if (!password_verify($password, $user['password'])) {
-            return ['success' => false, 'message' => 'Invalid credentials'];
-        }
-
-        // Set session
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_role'] = $user['role'];
-        $_SESSION['logged_in'] = true;
-
-        // Update last login
-        $this->db->update('users', 
-            ['last_login' => date('Y-m-d H:i:s')], 
-            'id = ?', 
-            [$user['id']]
-        );
-
-        return ['success' => true, 'message' => 'Login successful'];
     }
 
     public function logout() {
@@ -113,121 +123,128 @@ class Auth {
     public function requireAdmin() {
         $this->requireLogin();
         if (!$this->isAdmin()) {
-            redirect('home');
+            redirect('404');
         }
     }
 
     public function updateProfile($userId, $data) {
-        $updateData = [];
-        
-        if (!empty($data['name'])) {
-            $updateData['name'] = $data['name'];
-        }
-        
-        if (!empty($data['email'])) {
-            // Check if email is already taken by another user
-            $existing = $this->db->fetch("SELECT id FROM users WHERE email = ? AND id != ?", [$data['email'], $userId]);
-            if ($existing) {
-                return ['success' => false, 'message' => 'Email already taken'];
-            }
-            $updateData['email'] = $data['email'];
-        }
-
-        if (!empty($data['password'])) {
-            $updateData['password'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-        }
-
-        if (empty($updateData)) {
-            return ['success' => false, 'message' => 'No data to update'];
-        }
-
-        $updateData['updated_at'] = date('Y-m-d H:i:s');
-        
-        $result = $this->db->update('users', $updateData, 'id = ?', [$userId]);
-        
-        if ($result) {
-            // Update session if name or email changed
-            if (isset($updateData['name'])) {
-                $_SESSION['user_name'] = $updateData['name'];
-            }
-            if (isset($updateData['email'])) {
-                $_SESSION['user_email'] = $updateData['email'];
+        try {
+            $updateData = [];
+            
+            if (isset($data['name'])) {
+                $updateData['name'] = $data['name'];
             }
             
-            return ['success' => true, 'message' => 'Profile updated successfully'];
+            if (isset($data['email'])) {
+                // Check if email is already taken by another user
+                $existing = $this->supabase->select('users', '*', ['email' => $data['email']]);
+                if (!empty($existing) && $existing[0]['id'] != $userId) {
+                    return ['success' => false, 'message' => 'Email already taken'];
+                }
+                $updateData['email'] = $data['email'];
+            }
+            
+            if (isset($data['phone'])) {
+                $updateData['phone'] = $data['phone'];
+            }
+            
+            if (isset($data['address'])) {
+                $updateData['address'] = $data['address'];
+            }
+            
+            if (!empty($updateData)) {
+                $updateData['updated_at'] = date('Y-m-d H:i:s');
+                $this->supabase->update('users', $updateData, ['id' => $userId]);
+                
+                // Update session if name was changed
+                if (isset($updateData['name'])) {
+                    $_SESSION['user_name'] = $updateData['name'];
+                }
+                if (isset($updateData['email'])) {
+                    $_SESSION['user_email'] = $updateData['email'];
+                }
+                
+                return ['success' => true, 'message' => 'Profile updated successfully'];
+            }
+            
+            return ['success' => false, 'message' => 'No changes to update'];
+        } catch (Exception $e) {
+            error_log("Profile update error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Profile update failed'];
         }
-
-        return ['success' => false, 'message' => 'Failed to update profile'];
     }
 
     public function resetPassword($email) {
-        $user = $this->db->fetch("SELECT id, name FROM users WHERE email = ?", [$email]);
-        
-        if (!$user) {
-            return ['success' => false, 'message' => 'Email not found'];
+        try {
+            $users = $this->supabase->select('users', '*', ['email' => $email]);
+            $user = $users[0] ?? null;
+            
+            if (!$user) {
+                return ['success' => false, 'message' => 'Email not found'];
+            }
+
+            // Generate reset token
+            $token = bin2hex(random_bytes(32));
+            $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+            
+            // Store reset token
+            $this->supabase->update('users', [
+                'reset_token' => $token,
+                'reset_token_expires' => $expires
+            ], ['id' => $user['id']]);
+
+            // Send email (implement your email sending logic here)
+            // For now, just return success
+            return ['success' => true, 'message' => 'Password reset email sent'];
+        } catch (Exception $e) {
+            error_log("Password reset error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Password reset failed'];
         }
-
-        // Generate reset token
-        $token = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
-        
-        $this->db->insert('password_resets', [
-            'user_id' => $user['id'],
-            'token' => $token,
-            'expires_at' => $expires,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
-
-        // Send reset email (implement email sending)
-        // sendPasswordResetEmail($email, $token);
-
-        return ['success' => true, 'message' => 'Password reset email sent'];
     }
 
     public function verifyResetToken($token) {
-        $reset = $this->db->fetch(
-            "SELECT * FROM password_resets WHERE token = ? AND expires_at > NOW() AND used = 0",
-            [$token]
-        );
-        
-        return $reset ? $reset : false;
+        try {
+            $users = $this->supabase->select('users', '*', ['reset_token' => $token]);
+            $user = $users[0] ?? null;
+            
+            if (!$user) {
+                return false;
+            }
+
+            if (strtotime($user['reset_token_expires']) < time()) {
+                return false;
+            }
+
+            return $user;
+        } catch (Exception $e) {
+            error_log("Token verification error: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function setNewPassword($token, $newPassword) {
-        $reset = $this->verifyResetToken($token);
-        
-        if (!$reset) {
-            return ['success' => false, 'message' => 'Invalid or expired token'];
-        }
-
-        $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
-        
-        $this->db->beginTransaction();
-        
         try {
-            // Update password
-            $this->db->update('users', 
-                ['password' => $hashedPassword, 'updated_at' => date('Y-m-d H:i:s')], 
-                'id = ?', 
-                [$reset['user_id']]
-            );
+            $user = $this->verifyResetToken($token);
+            if (!$user) {
+                return ['success' => false, 'message' => 'Invalid or expired token'];
+            }
+
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => PASSWORD_COST]);
             
-            // Mark token as used
-            $this->db->update('password_resets', 
-                ['used' => 1], 
-                'id = ?', 
-                [$reset['id']]
-            );
-            
-            $this->db->commit();
+            $this->supabase->update('users', [
+                'password' => $hashedPassword,
+                'reset_token' => null,
+                'reset_token_expires' => null
+            ], ['id' => $user['id']]);
+
             return ['success' => true, 'message' => 'Password updated successfully'];
         } catch (Exception $e) {
-            $this->db->rollback();
-            return ['success' => false, 'message' => 'Failed to update password'];
+            error_log("Password update error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Password update failed'];
         }
     }
 }
 
-// Global auth instance
+// Create global instance
 $auth = new Auth();
 ?> 

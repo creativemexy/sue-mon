@@ -5,6 +5,9 @@ require_once 'config/supabase_client.php';
 require_once 'includes/functions.php';
 require_once 'includes/auth.php';
 
+// Initialize auth object
+$auth = new Auth();
+
 // Simple routing
 $request_uri = $_SERVER['REQUEST_URI'];
 $base_path = '/';
