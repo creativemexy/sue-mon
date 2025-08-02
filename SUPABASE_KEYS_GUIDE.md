@@ -1,16 +1,16 @@
-# 🔑 Supabase Keys Configuration Guide
+# 🔑 Modern Supabase API Keys Configuration Guide
 
-## 📋 **Key Types Explained**
+## 📋 **Modern API Keys Explained**
 
-### **1. Publishable Key (Anon Key) - ✅ Use This for Most Operations**
+### **1. API Key (Anon Key) - ✅ Use This for User Operations**
 - **Location:** Supabase Dashboard > Settings > API > anon public
-- **What it does:** Read data, insert data (with RLS policies)
+- **What it does:** Read data, insert data (with RLS policies), user authentication
 - **Security:** Safe to expose in frontend code
 - **Your current config:** ✅ Already configured correctly
 
-### **2. Service Role Key (Secret Key) - ⚠️ For Admin Operations**
+### **2. Service Role Key - ⚠️ For Admin Operations**
 - **Location:** Supabase Dashboard > Settings > API > service_role
-- **What it does:** Bypass RLS, full database access
+- **What it does:** Bypass RLS, full database access, admin operations
 - **Security:** Never expose in frontend, only use server-side
 - **Your current config:** ❌ Needs to be updated
 
@@ -38,18 +38,20 @@ define('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3
 define('SUPABASE_SERVICE_ROLE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydXl4Z2FteXdia3Vvdnl6bGhlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Mjg0NTAwOSwiZXhwIjoyMDY4NDIxMDA5fQ.ACTUAL_SERVICE_ROLE_KEY_HERE');
 ```
 
-## 🔒 **Security Best Practices**
+## 🔒 **Modern API Security Best Practices**
 
 ### **✅ Do This:**
-- Use **anon key** for most operations (reading data, user registrations)
+- Use **API key (anon)** for user operations (registration, login, reading data)
 - Use **service role key** only for admin operations (bypassing RLS)
 - Keep service role key secret and server-side only
 - Use Row Level Security (RLS) policies in Supabase
+- Use modern authentication methods (authSignUp, authSignIn)
 
 ### **❌ Don't Do This:**
 - Never expose service role key in frontend code
 - Don't commit real keys to public repositories
 - Don't use service role key for regular user operations
+- Don't use legacy authentication methods
 
 ## 🧪 **Test Your Configuration**
 
