@@ -1,4 +1,15 @@
 <?php
+// Initialize required variables if accessed directly
+if (!isset($auth)) {
+    require_once __DIR__ . '/../config/config.php';
+    require_once __DIR__ . '/../config/supabase_client.php';
+    require_once __DIR__ . '/../includes/auth.php';
+    require_once __DIR__ . '/../includes/functions.php';
+    
+    $supabase = new SupabaseClient();
+    $auth = new Auth();
+}
+
 $page_title = 'Checkout';
 $page_description = 'Complete your order and payment.';
 
@@ -12,40 +23,45 @@ $cartTotal = getCartTotal();
 
 // Handle checkout form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $shippingData = [
-        'name' => sanitizeInput($_POST['name']),
-        'email' => sanitizeInput($_POST['email']),
-        'phone' => sanitizeInput($_POST['phone']),
-        'address' => sanitizeInput($_POST['address']),
-        'city' => sanitizeInput($_POST['city']),
-        'state' => sanitizeInput($_POST['state']),
-        'postal_code' => sanitizeInput($_POST['postal_code']),
-        'country' => sanitizeInput($_POST['country'])
-    ];
-    
-    // Basic validation
-    $errors = [];
-    if (empty($shippingData['name'])) $errors[] = 'Name is required';
-    if (empty($shippingData['email'])) $errors[] = 'Email is required';
-    if (!validateEmail($shippingData['email'])) $errors[] = 'Valid email is required';
-    if (empty($shippingData['phone'])) $errors[] = 'Phone is required';
-    if (empty($shippingData['address'])) $errors[] = 'Address is required';
-    if (empty($shippingData['city'])) $errors[] = 'City is required';
-    if (empty($shippingData['state'])) $errors[] = 'State is required';
-    
-    if (empty($errors)) {
-        // Create order
-        $userId = $auth->isLoggedIn() ? $_SESSION['user_id'] : null;
-        $result = createOrder($userId, $cartItems, $shippingData);
-        
-        if ($result['success']) {
-            $_SESSION['flash_message'] = 'Order placed successfully! Order #' . $result['order_id'];
-            redirect('orders');
-        } else {
-            $_SESSION['error_message'] = $result['message'];
-        }
+    // Validate CSRF token
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        $_SESSION['error_message'] = 'Invalid request. Please try again.';
     } else {
-        $_SESSION['error_message'] = implode(', ', $errors);
+        $shippingData = [
+            'name' => sanitizeInput($_POST['name']),
+            'email' => sanitizeInput($_POST['email']),
+            'phone' => sanitizeInput($_POST['phone']),
+            'address' => sanitizeInput($_POST['address']),
+            'city' => sanitizeInput($_POST['city']),
+            'state' => sanitizeInput($_POST['state']),
+            'postal_code' => sanitizeInput($_POST['postal_code']),
+            'country' => sanitizeInput($_POST['country'])
+        ];
+        
+        // Basic validation
+        $errors = [];
+        if (empty($shippingData['name'])) $errors[] = 'Name is required';
+        if (empty($shippingData['email'])) $errors[] = 'Email is required';
+        if (!validateEmail($shippingData['email'])) $errors[] = 'Valid email is required';
+        if (empty($shippingData['phone'])) $errors[] = 'Phone is required';
+        if (empty($shippingData['address'])) $errors[] = 'Address is required';
+        if (empty($shippingData['city'])) $errors[] = 'City is required';
+        if (empty($shippingData['state'])) $errors[] = 'State is required';
+        
+        if (empty($errors)) {
+            // Create order
+            $userId = $auth->isLoggedIn() ? $_SESSION['user_id'] : null;
+            $result = createOrder($userId, $cartItems, $shippingData);
+            
+            if ($result['success']) {
+                $_SESSION['flash_message'] = 'Order placed successfully! Order #' . $result['order_id'];
+                redirect('orders');
+            } else {
+                $_SESSION['error_message'] = $result['message'];
+            }
+        } else {
+            $_SESSION['error_message'] = implode(', ', $errors);
+        }
     }
 }
 

@@ -1,30 +1,56 @@
 <?php
+// Initialize required variables if accessed directly
+if (!isset($auth)) {
+    require_once __DIR__ . '/../config/config.php';
+    require_once __DIR__ . '/../config/supabase_client.php';
+    require_once __DIR__ . '/../includes/auth.php';
+    require_once __DIR__ . '/../includes/functions.php';
+    
+    $supabase = new SupabaseClient();
+    $auth = new Auth();
+}
+
 $page_title = 'Contact Us';
 $page_description = 'Get in touch with Sue & Mon for questions, support, or wholesale inquiries.';
 
 // Handle contact form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = sanitizeInput($_POST['name']);
-    $email = sanitizeInput($_POST['email']);
-    $subject = sanitizeInput($_POST['subject']);
-    $message = sanitizeInput($_POST['message']);
-    
-    // Basic validation
-    if (empty($name) || empty($email) || empty($subject) || empty($message)) {
-        $_SESSION['error_message'] = 'All fields are required.';
-    } elseif (!validateEmail($email)) {
-        $_SESSION['error_message'] = 'Please enter a valid email address.';
+    // Validate CSRF token
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        $_SESSION['error_message'] = 'Invalid request. Please try again.';
     } else {
-        // Send email (implement email sending functionality)
-        $to = 'contact@sueandmon.com';
-        $email_subject = "Contact Form: $subject";
-        $email_body = "Name: $name\nEmail: $email\nSubject: $subject\n\nMessage:\n$message";
-        $headers = "From: $email\r\nReply-To: $email\r\n";
+        $name = sanitizeInput($_POST['name']);
+        $email = sanitizeInput($_POST['email']);
+        $subject = sanitizeInput($_POST['subject']);
+        $message = sanitizeInput($_POST['message']);
         
-        if (mail($to, $email_subject, $email_body, $headers)) {
-            $_SESSION['flash_message'] = 'Thank you for your message! We will get back to you soon.';
+        // Basic validation
+        if (empty($name) || empty($email) || empty($subject) || empty($message)) {
+            $_SESSION['error_message'] = 'All fields are required.';
+        } elseif (!validateEmail($email)) {
+            $_SESSION['error_message'] = 'Please enter a valid email address.';
         } else {
-            $_SESSION['error_message'] = 'Sorry, there was an error sending your message. Please try again.';
+            // Store contact message in database
+            try {
+                $contact_data = [
+                    'name' => $name,
+                    'email' => $email,
+                    'subject' => $subject,
+                    'message' => $message,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'status' => 'new'
+                ];
+                
+                $result = $supabase->insert('contact_messages', $contact_data);
+                
+                if ($result) {
+                    $_SESSION['flash_message'] = 'Thank you for your message! We will get back to you soon.';
+                } else {
+                    $_SESSION['error_message'] = 'Sorry, there was an error sending your message. Please try again.';
+                }
+            } catch (Exception $e) {
+                $_SESSION['error_message'] = 'Sorry, there was an error sending your message. Please try again.';
+            }
         }
     }
 }
