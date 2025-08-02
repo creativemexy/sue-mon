@@ -57,11 +57,15 @@ $routes = [
     'wholesale' => 'pages/wholesale.php',
     'wishlist' => 'pages/wishlist.php',
     'profile' => 'pages/profile.php',
-    'orders' => 'pages/orders.php',
-    'auth/login' => 'pages/auth/login.php',
-    'auth/register' => 'pages/auth/register.php',
-    'auth/logout' => 'pages/auth/logout.php'
+    'orders' => 'pages/orders.php'
 ];
+
+// Debug routing (remove in production)
+if (isset($_GET['debug'])) {
+    echo "Request URI: " . $request_uri . "<br>";
+    echo "Path: " . $path . "<br>";
+    echo "Available routes: " . implode(', ', array_keys($routes)) . "<br>";
+}
 
 // Check if route exists
 if (isset($routes[$path])) {
