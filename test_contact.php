@@ -96,7 +96,7 @@ try {
     echo "<li>✅ sanitizeInput() - " . (function_exists('sanitizeInput') ? 'Available' : 'Missing') . "</li>";
     echo "<li>✅ validateEmail() - " . (function_exists('validateEmail') ? 'Available' : 'Missing') . "</li>";
     echo "<li>✅ csrf_token() - " . (function_exists('csrf_token') ? 'Available' : 'Missing') . "</li>";
-    echo "<li>✅ validate_csrf_token() - " . (function_exists('validate_csrf_token') ? 'Available' : 'Missing') . "</li>";
+    echo "<li>✅ verify_csrf_token() - " . (function_exists('verify_csrf_token') ? 'Available' : 'Missing') . "</li>";
     echo "</ul>";
     
     // Test CSRF token generation
@@ -104,7 +104,7 @@ try {
     $token = csrf_token();
     echo "<p><strong>Generated Token:</strong> " . substr($token, 0, 20) . "...</p>";
     echo "<p><strong>Token Length:</strong> " . strlen($token) . " characters</p>";
-    echo "<p><strong>Validation Test:</strong> " . (validate_csrf_token($token) ? '✅ Valid' : '❌ Invalid') . "</p>";
+    echo "<p><strong>Validation Test:</strong> " . (verify_csrf_token($token) ? '✅ Valid' : '❌ Invalid') . "</p>";
     
 } catch (Exception $e) {
     echo "<p style='color: red;'>❌ Error: " . $e->getMessage() . "</p>";

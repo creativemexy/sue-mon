@@ -24,7 +24,7 @@ $cartTotal = getCartTotal();
 // Handle checkout form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF token
-    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
         $_SESSION['error_message'] = 'Invalid request. Please try again.';
     } else {
         $shippingData = [
