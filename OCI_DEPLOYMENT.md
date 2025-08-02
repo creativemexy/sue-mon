@@ -1,6 +1,6 @@
 # OCI Deployment Guide for Sue & Mon PHP Website
 
-This guide will help you deploy the Sue & Mon PHP website on Oracle Cloud Infrastructure (OCI) with Caddy web server and automatic updates.
+This guide will help you deploy the Sue & Mon PHP website on Oracle Cloud Infrastructure (OCI) with Caddy web server and automatic updates, using Supabase as the database.
 
 ## 🚀 **Prerequisites**
 
@@ -8,6 +8,7 @@ This guide will help you deploy the Sue & Mon PHP website on Oracle Cloud Infras
 - Root access to the server
 - Domain name pointing to your OCI instance
 - GitHub repository access
+- Supabase project with API keys
 
 ## 📋 **Step 1: Server Setup**
 
@@ -19,10 +20,7 @@ sudo apt update && sudo apt upgrade -y
 ### 1.2 Install Required Software
 ```bash
 # Install PHP and extensions
-sudo apt install -y php8.1 php8.1-fpm php8.1-mysql php8.1-curl php8.1-gd php8.1-mbstring php8.1-xml php8.1-zip
-
-# Install MySQL
-sudo apt install -y mysql-server
+sudo apt install -y php8.1 php8.1-fpm php8.1-curl php8.1-gd php8.1-mbstring php8.1-xml php8.1-zip php8.1-json
 
 # Install Caddy
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
@@ -35,33 +33,26 @@ sudo apt install caddy
 sudo apt install -y git
 ```
 
-## 🗄️ **Step 2: Database Setup**
+## 🗄️ **Step 2: Supabase Setup**
 
-### 2.1 Secure MySQL
-```bash
-sudo mysql_secure_installation
-```
+### 2.1 Get Your Supabase Credentials
+1. Go to your Supabase project dashboard
+2. Navigate to Settings > API
+3. Copy the following:
+   - **Project URL** (e.g., `https://your-project.supabase.co`)
+   - **Anon Key** (public key)
+   - **Service Role Key** (secret key)
 
-### 2.2 Create Database
-```bash
-sudo mysql -u root -p
-```
-
-```sql
-CREATE DATABASE sue_mon_db;
-CREATE USER 'sue_mon_user'@'localhost' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON sue_mon_db.* TO 'sue_mon_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-### 2.3 Import Database Schema
-```bash
-cd /var/www
-git clone https://github.com/yourusername/sue-mon.git
-cd sue-mon
-mysql -u root -p sue_mon_db < database/schema.sql
-```
+### 2.2 Verify Database Schema
+Your Supabase database should have the following tables (from `database/schema.sql`):
+- `users`
+- `products`
+- `categories`
+- `orders`
+- `order_items`
+- `cart_items`
+- `blog_posts`
+- `contact_messages`
 
 ## 🌐 **Step 3: Caddy Configuration**
 
@@ -131,18 +122,18 @@ cp config/config.example.php config/config.php
 sudo nano config/config.php
 ```
 
-Update the configuration with your database credentials:
+Update the configuration with your Supabase credentials:
 ```php
 <?php
-// Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'sue_mon_db');
-define('DB_USER', 'sue_mon_user');
-define('DB_PASS', 'your_secure_password');
-
 // Site Configuration
-define('SITE_URL', 'https://your-domain.com');
 define('SITE_NAME', 'Sue & Mon');
+define('SITE_DESCRIPTION', 'Premium Herbal Blends');
+define('SITE_URL', 'https://your-domain.com'); // Change for production
+
+// Supabase Configuration
+define('SUPABASE_URL', 'https://your-project.supabase.co');
+define('SUPABASE_ANON_KEY', 'your-supabase-anon-key');
+define('SUPABASE_SERVICE_ROLE_KEY', 'your-supabase-service-role-key');
 
 // Paystack Configuration (if using)
 define('PAYSTACK_SECRET_KEY', 'your_secret_key');
@@ -153,6 +144,27 @@ define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
 define('SMTP_USER', 'your_email@gmail.com');
 define('SMTP_PASS', 'your_app_password');
+
+// Session Configuration
+define('SESSION_LIFETIME', 3600); // 1 hour
+
+// Currency
+define('CURRENCY', 'NGN');
+define('CURRENCY_SYMBOL', '₦');
+
+// File upload settings
+define('MAX_FILE_SIZE', 5 * 1024 * 1024); // 5MB
+define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/webp']);
+
+// Helper function for asset URLs
+function asset($path) {
+    return SITE_URL . '/public/' . ltrim($path, '/');
+}
+
+// Helper function for URLs
+function url($path = '') {
+    return SITE_URL . '/' . ltrim($path, '/');
+}
 ?>
 ```
 
@@ -223,7 +235,6 @@ sudo systemctl restart caddy
 ```bash
 sudo systemctl status caddy
 sudo systemctl status php8.1-fpm
-sudo systemctl status mysql
 ```
 
 ### 7.2 Monitor Logs
@@ -252,14 +263,13 @@ DATE=$(date +%Y%m%d_%H%M%S)
 # Create backup directory
 mkdir -p $BACKUP_DIR
 
-# Backup database
-mysqldump -u root -p sue_mon_db > $BACKUP_DIR/database_$DATE.sql
-
 # Backup application files
 tar -czf $BACKUP_DIR/files_$DATE.tar.gz /var/www/sue-mon
 
+# Note: Supabase backups are handled by Supabase
+# You can export data via Supabase dashboard if needed
+
 # Keep only last 7 days of backups
-find $BACKUP_DIR -name "*.sql" -mtime +7 -delete
 find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
 
 echo "Backup completed: $DATE"
@@ -287,11 +297,10 @@ sudo crontab -e
    sudo systemctl restart php8.1-fpm
    ```
 
-3. **Database connection issues:**
-   ```bash
-   sudo mysql -u root -p
-   SHOW GRANTS FOR 'sue_mon_user'@'localhost';
-   ```
+3. **Supabase connection issues:**
+   - Verify your Supabase URL and keys
+   - Check if your Supabase project is active
+   - Ensure your IP is not blocked by Supabase
 
 4. **Permission issues:**
    ```bash
@@ -304,16 +313,16 @@ sudo crontab -e
 - **Application Logs:** `/var/www/sue-mon/auto_update.log`
 - **Caddy Logs:** `sudo journalctl -u caddy`
 - **PHP Logs:** `/var/log/php8.1-fpm.log`
-- **MySQL Logs:** `/var/log/mysql/error.log`
+- **Supabase Logs:** Check your Supabase dashboard
 
 ## ✅ **Verification Checklist**
 
 - [ ] Website loads at your domain
-- [ ] Database connection works
+- [ ] Supabase connection works
 - [ ] Admin panel accessible
 - [ ] SSL certificate active
 - [ ] Automatic updates working
 - [ ] Backups configured
 - [ ] Monitoring in place
 
-Your Sue & Mon PHP website is now deployed on OCI with automatic updates every 30 minutes! 
+Your Sue & Mon PHP website is now deployed on OCI with Supabase database and automatic updates every 30 minutes! 

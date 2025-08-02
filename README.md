@@ -32,7 +32,7 @@ A fully functional e-commerce website for premium herbal tea blends, built with 
 ## 🛠 **Tech Stack**
 
 - **Backend:** PHP 8.0+
-- **Database:** MySQL 8.0+
+- **Database:** Supabase (PostgreSQL)
 - **Frontend:** HTML5, CSS3, JavaScript (ES6+)
 - **Styling:** Tailwind CSS (via CDN)
 - **Icons:** Font Awesome
@@ -88,15 +88,14 @@ A fully functional e-commerce website for premium herbal tea blends, built with 
 
 ## 🚀 **Quick Start**
 
-### 1. **Database Setup**
-```sql
-CREATE DATABASE sue_mon_db;
-mysql -u root -p sue_mon_db < database/schema.sql
-```
+### 1. **Supabase Setup**
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Get your API keys from Settings > API
+3. Import the database schema from `database/schema.sql` into your Supabase project
 
 ### 2. **Configuration**
 Edit `config/config.php` with your settings:
-- Database credentials
+- Supabase API keys
 - Site configuration
 - Payment gateway settings
 
