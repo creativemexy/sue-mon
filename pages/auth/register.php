@@ -1,4 +1,14 @@
 <?php
+// Initialize required variables if accessed directly
+if (!isset($auth)) {
+    require_once __DIR__ . '/../../config/config.php';
+    require_once __DIR__ . '/../../config/supabase_client.php';
+    require_once __DIR__ . '/../../includes/auth.php';
+    
+    $supabase = new SupabaseClient();
+    $auth = new Auth();
+}
+
 $page_title = 'Register';
 $page_description = 'Create a new Sue & Mon account';
 

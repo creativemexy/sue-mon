@@ -1,20 +1,20 @@
 <?php
-// Initialize required variables if accessed directly
-if (!isset($auth)) {
-    require_once __DIR__ . '/../../config/config.php';
-    require_once __DIR__ . '/../../config/supabase_client.php';
-    require_once __DIR__ . '/../../includes/auth.php';
-    
-    $supabase = new SupabaseClient();
-    $auth = new Auth();
-}
+// Standalone login page - works without routing
+session_start();
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-$page_title = 'Login';
-$page_description = 'Login to your Sue & Mon account';
+// Include required files
+require_once 'config/config.php';
+require_once 'config/supabase_client.php';
+require_once 'includes/auth.php';
+
+$supabase = new SupabaseClient();
+$auth = new Auth();
 
 // Check if user is already logged in
 if ($auth->isLoggedIn()) {
-    header('Location: ' . url());
+    header('Location: index.php');
     exit;
 }
 
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     
     if (empty($email) || empty($password)) {
-        $_SESSION['error_message'] = 'Please fill in all fields.';
+        $error_message = 'Please fill in all fields.';
     } else {
         try {
             // Get user from database
@@ -36,25 +36,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $users[0]['name'];
                 $_SESSION['user_email'] = $users[0]['email'];
                 $_SESSION['user_role'] = $users[0]['role'] ?? 'user';
+                $_SESSION['logged_in'] = true;
                 
-                $_SESSION['flash_message'] = 'Welcome back, ' . $users[0]['name'] . '!';
-                header('Location: ' . url());
+                $success_message = 'Welcome back, ' . $users[0]['name'] . '!';
+                
+                // Redirect based on role
+                if ($users[0]['role'] === 'admin') {
+                    header('Location: pages/admin/dashboard.php');
+                } else {
+                    header('Location: index.php');
+                }
                 exit;
             } else {
-                $_SESSION['error_message'] = 'Invalid email or password.';
+                $error_message = 'Invalid email or password.';
             }
         } catch (Exception $e) {
-            $_SESSION['error_message'] = 'Login failed. Please try again.';
+            $error_message = 'Login failed. Please try again.';
         }
     }
 }
 ?>
-
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - <?php echo SITE_NAME; ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <div class="flex justify-center">
             <div class="bg-gradient-to-r from-green-600 to-green-800 p-3 rounded-lg shadow-lg">
-                <img src="<?php echo asset('logo.svg'); ?>" alt="<?php echo SITE_NAME; ?> Logo" class="w-8 h-8 object-contain">
+                <img src="public/logo.svg" alt="<?php echo SITE_NAME; ?> Logo" class="w-8 h-8 object-contain">
             </div>
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -62,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
             Or
-            <a href="<?php echo url('auth/register'); ?>" class="font-medium text-green-600 hover:text-green-500">
+            <a href="register_standalone.php" class="font-medium text-green-600 hover:text-green-500">
                 create a new account
             </a>
         </p>
@@ -70,6 +85,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <?php if (isset($error_message)): ?>
+                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    <?php echo htmlspecialchars($error_message); ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($success_message)): ?>
+                <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                    <?php echo htmlspecialchars($success_message); ?>
+                </div>
+            <?php endif; ?>
+
             <form class="space-y-6" method="POST">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">
@@ -146,4 +173,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
-</div> 
+
+    <div class="mt-8 text-center">
+        <a href="index.php" class="text-sm text-gray-600 hover:text-gray-500">
+            ← Back to Home
+        </a>
+    </div>
+</body>
+</html> 
